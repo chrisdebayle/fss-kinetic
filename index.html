@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed Scope Sprint &middot; Kinetic AI &middot; Chris Debayle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#0B0E11; --ground-view:#101317; --card-dark:#171B20;
+  --hair-1:#1B2027; --hair-2:#22272D; --hair-3:#262B31; --hair-4:#2A3037;
+  --accent:#F97316; --accent-700:#C85D12; --accent-800:#B65510;
+  --primary:#0A66C2; --link-dark:#57A8EE;
+  --ink-body:#E8EBEE; --ink-head:#F4F6F8; --ink-2:#A8B0B9;
+  --muted-2:#7E858E; --muted-3:#737B84;
+  --stage-1:#57A8EE; --stage-2:#4C8FD6; --stage-3:#F97316; --stage-4:#D96A24; --stage-5:#F97316;
+  --font-display:'Space Grotesk','Inter',-apple-system,sans-serif;
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --shell-max:1320px;
+  --view:var(--accent);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--ground);color:var(--ink-body);
+  font-family:var(--font-body);overflow:hidden;-webkit-font-smoothing:antialiased;}
+
+.app{display:flex;flex-direction:column;height:100vh;width:100vw;}
+
+/* ---------- TOP BAR ---------- */
+.topbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  gap:24px;padding:0 34px;height:62px;border-bottom:1px solid var(--hair-2);background:var(--ground);}
+.wordmark{font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:0.16em;
+  color:var(--ink-head);white-space:nowrap;}
+.chapnav{display:flex;gap:4px;overflow:hidden;flex-wrap:nowrap;}
+.chapnav button{all:unset;cursor:pointer;font-size:10.5px;font-weight:600;letter-spacing:0.11em;
+  text-transform:uppercase;color:var(--muted-3);padding:7px 10px;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:color .25s ease,border-color .25s ease;}
+.chapnav button:hover{color:var(--ink-2);}
+.chapnav button.active{color:var(--view);border-bottom-color:var(--view);}
+.cobrand{display:flex;align-items:center;gap:12px;white-space:nowrap;}
+.cobrand .prep{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted-3);}
+.cobrand img{height:19px;display:block;opacity:.92;}
+
+/* ---------- STAGE ---------- */
+.stage{flex:1;position:relative;overflow:hidden;background:var(--ground-view);}
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:46px 54px;opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .3s ease,transform .3s ease;}
+.slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+.inner{width:100%;max-width:var(--shell-max);display:flex;flex-direction:column;gap:26px;}
+.inner.center{align-items:center;text-align:center;}
+/* a note following a grid/table/flow reads as a footnote to it, so tighten that pairing */
+.grid + .note,table + .note,.flow + .note,.rail + .note{margin-top:-6px;}
+
+/* ---------- TYPE ---------- */
+.eyebrow{font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--view);}
+/* explicit brand-blue override, independent of the per-chapter accent rotation */
+.blue-label{color:var(--stage-1) !important;}
+.rule.blue-label{background:var(--stage-1) !important;}
+.card .tag.blue-label{color:var(--stage-1) !important;}
+h1{font-family:var(--font-display);font-weight:700;font-size:clamp(34px,4.4vw,58px);
+  line-height:1.06;color:var(--accent);letter-spacing:-0.015em;}
+h1.light{color:var(--ink-head);}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,3vw,40px);
+  line-height:1.12;color:var(--ink-head);letter-spacing:-0.01em;}
+.lede{font-size:clamp(16.5px,1.5vw,21px);line-height:1.6;color:var(--ink-2);max-width:900px;font-weight:300;}
+.statement{font-family:var(--font-display);font-weight:500;font-size:clamp(22px,2.6vw,36px);
+  line-height:1.32;color:var(--ink-head);max-width:1020px;letter-spacing:-0.01em;}
+.statement em{font-style:normal;color:var(--accent);}
+/* sub-text: secondary, but sized and toned to actually be read */
+.note{font-size:16px;line-height:1.62;color:var(--ink-2);max-width:980px;font-weight:300;}
+.note em{font-style:italic;color:var(--ink-head);font-weight:400;}
+.quote{font-family:var(--font-display);font-weight:500;font-size:clamp(20px,2.4vw,33px);
+  line-height:1.34;color:var(--ink-head);max-width:1000px;border-left:3px solid var(--accent);
+  padding-left:26px;letter-spacing:-0.01em;}
+.quote .src{display:block;margin-top:18px;font-family:var(--font-body);font-weight:500;
+  font-size:12.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted-2);}
+
+/* ---------- CARDS ---------- */
+.grid{display:grid;gap:16px;width:100%;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.card{background:var(--card-dark);border:1px solid var(--hair-3);border-radius:9px;
+  padding:26px 24px;display:flex;flex-direction:column;gap:10px;}
+.card.hl{border-color:var(--accent-800);}
+.card .ct{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--ink-head);}
+.card.hl .ct{color:var(--accent);}
+.card p{font-size:15.5px;line-height:1.6;color:var(--ink-2);font-weight:300;}
+.card .tag{font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted-2);font-weight:600;}
+
+/* stat */
+.stat{background:var(--card-dark);border:1px solid var(--hair-3);border-radius:9px;padding:28px 24px;
+  display:flex;flex-direction:column;gap:9px;}
+.stat .sv{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,3.4vw,45px);
+  color:var(--accent);line-height:1;}
+.stat .sk{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted-2);font-weight:600;}
+.stat .sd{font-size:14.5px;line-height:1.55;color:var(--ink-2);font-weight:300;}
+
+/* hero number */
+.hero{font-family:var(--font-display);font-weight:700;font-size:clamp(92px,13vw,190px);
+  color:var(--accent);line-height:.92;letter-spacing:-0.03em;}
+
+/* ---------- THE RAIL ---------- */
+.rail{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;width:100%;}
+.rl{background:var(--card-dark);border:1px solid var(--hair-3);border-top:3px solid var(--sc);
+  border-radius:0 0 9px 9px;padding:22px 18px;display:flex;flex-direction:column;gap:10px;}
+.rl .rn{font-family:var(--font-display);font-weight:700;font-size:11px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--sc);}
+.rl .rt{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--ink-head);line-height:1.22;}
+.rl p{font-size:14.5px;line-height:1.55;color:var(--ink-2);font-weight:300;}
+.rl .own{margin-top:auto;padding-top:12px;border-top:1px solid var(--hair-2);
+  font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sc);font-weight:600;opacity:.85;}
+
+/* ---------- FLOW ---------- */
+.flow{display:flex;align-items:stretch;justify-content:center;gap:0;width:100%;flex-wrap:wrap;}
+.fb{background:var(--card-dark);border:1px solid var(--hair-3);border-radius:9px;padding:22px 20px;
+  min-width:168px;flex:1;max-width:240px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;}
+.fb .fv{font-family:var(--font-display);font-weight:700;font-size:34px;color:var(--accent);line-height:1;
+  display:flex;align-items:baseline;justify-content:center;white-space:nowrap;}
+.fb .fv .to{font-family:var(--font-body);font-size:14px;font-weight:400;color:var(--muted-2);
+  padding:0 7px;letter-spacing:0.06em;text-transform:lowercase;}
+.fb .fl{font-size:13.5px;line-height:1.5;color:var(--ink-2);font-weight:300;}
+.fa{display:flex;align-items:center;padding:0 14px;color:var(--muted-2);font-size:18px;}
+
+/* ---------- LIST ---------- */
+.list{display:flex;flex-direction:column;gap:17px;width:100%;max-width:980px;}
+.list li{list-style:none;display:flex;gap:20px;align-items:flex-start;font-size:18px;
+  line-height:1.52;color:var(--ink-body);font-weight:300;}
+.list .n{font-family:var(--font-display);font-weight:700;font-size:13.5px;color:var(--accent);
+  min-width:26px;padding-top:4px;letter-spacing:0.05em;}
+
+/* ---------- TABLE ---------- */
+table{width:100%;border-collapse:collapse;text-align:left;}
+thead th{font-family:var(--font-display);font-weight:700;font-size:11px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--muted-2);padding:0 16px 13px;border-bottom:1px solid var(--accent-800);}
+tbody td{font-size:15.5px;line-height:1.55;color:var(--ink-body);padding:17px 16px;
+  border-bottom:1px solid var(--hair-2);font-weight:300;}
+tbody tr:last-child td{border-bottom:none;}
+td.k{font-family:var(--font-display);font-weight:700;color:var(--accent);font-size:14.5px;
+  letter-spacing:0.03em;white-space:nowrap;}
+
+/* ---------- BARS ---------- */
+.bars{display:flex;align-items:flex-end;justify-content:center;gap:40px;width:100%;max-width:780px;}
+.bar{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;}
+.bt{width:100%;height:260px;display:flex;align-items:flex-end;}
+.bf{width:100%;background:linear-gradient(180deg,var(--accent),rgba(249,115,22,.14));
+  border:1px solid var(--accent-800);border-bottom:none;border-radius:7px 7px 0 0;
+  display:flex;justify-content:center;padding-top:10px;}
+.bf .bv{font-family:var(--font-display);font-weight:700;font-size:27px;color:var(--ground);}
+.bl{font-size:14.5px;color:var(--ink-2);text-align:center;line-height:1.5;margin-top:14px;font-weight:300;}
+
+/* ---------- DIVIDER ---------- */
+.divider{position:relative;width:100%;}
+.dnum{position:absolute;top:50%;left:0;transform:translateY(-56%);font-family:var(--font-display);
+  font-weight:700;font-size:clamp(120px,17vw,210px);color:var(--view);opacity:.07;line-height:1;
+  user-select:none;z-index:0;letter-spacing:-0.04em;}
+.divider>*:not(.dnum){position:relative;z-index:1;}
+.rule{width:58px;height:3px;background:var(--view);margin:20px 0;}
+
+/* ---------- BOTTOM BAR ---------- */
+.botbar{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 34px;height:52px;border-top:1px solid var(--hair-2);background:var(--ground);}
+.counter{font-size:11px;letter-spacing:0.13em;color:var(--muted-3);font-variant-numeric:tabular-nums;
+  display:flex;gap:13px;align-items:center;text-transform:uppercase;}
+.counter .cur{color:var(--view);font-weight:600;}
+
+/* centred navigation hint */
+.navhint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;color:var(--muted-3);}
+.navhint kbd{font-family:var(--font-body);font-size:10px;font-weight:600;line-height:1;
+  border:1px solid var(--hair-4);border-radius:4px;padding:4px 7px;color:var(--ink-2);
+  background:var(--card-dark);letter-spacing:0.04em;}
+.navhint .sep{color:var(--hair-4);}
+
+.navbtns{display:flex;gap:9px;}
+.navbtns button{all:unset;cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 14px;
+  border:1px solid var(--hair-4);border-radius:5px;font-size:10.5px;letter-spacing:0.13em;
+  text-transform:uppercase;color:var(--ink-2);font-weight:600;
+  transition:border-color .2s,color .2s,background-color .2s;}
+/* brand-coded direction: blue back, orange forward */
+#prev{border-color:rgba(87,168,238,.42);color:var(--stage-1);}
+#prev:hover{border-color:var(--stage-1);color:var(--stage-1);background:rgba(87,168,238,.12);}
+#next{border-color:rgba(249,115,22,.42);color:var(--accent);}
+#next:hover{border-color:var(--accent);color:var(--accent);background:rgba(249,115,22,.12);}
+.progress{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);
+  transition:width .3s ease;z-index:6;}
+
+/* nav tightens before it clips, so the tab bar never silently truncates above the mobile breakpoint */
+@media (max-width:1220px){
+  .chapnav button{padding:7px 7px;font-size:9.5px;letter-spacing:0.08em;}
+  .cobrand .prep{display:none;}
+}
+@media (max-width:1080px){
+  .chapnav button{padding:7px 5px;font-size:8.5px;letter-spacing:0.05em;}
+  .wordmark{font-size:12px;}
+}
+
+@media (max-width:1000px){
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .rail{grid-template-columns:1fr;}
+  .chapnav{display:none;}
+  .navhint{display:none;}
+  .slide{padding:30px 22px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="wordmark">CHRIS DEBAYLE</div>
+    <nav class="chapnav" id="chapnav"></nav>
+    <div class="cobrand">
+      <span class="prep">Prepared for</span>
+      <img src="data:image/png;base64,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" alt="Kinetic AI">
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="slide" data-ch="0">
+      <div class="inner">
+        <div class="eyebrow blue-label">Fixed Scope Sprint &middot; 90 Days</div>
+        <h1>Ninety days to a<br>working engine.</h1>
+        <div class="rule blue-label"></div>
+        <div class="lede">Founding Account Executive &middot; DFW Metroplex &middot; Prepared for Kinetic AI<br>Chris Debayle</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="0">
+      <div class="inner">
+        <div class="statement">You asked for a 90-day plan. This is the engagement I already sell, <em>a Fixed Scope Sprint</em>, scoped to Kinetic and priced.</div>
+        <div class="note">A defined build with an end date and a handover. I originate demand from a cold start and systematize it into something you can run without me.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="1">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">01</div>
+          <h1 class="light">The Bottleneck</h1>
+          <div class="rule"></div>
+          <div class="lede">Your diagnosis, not my pitch</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="1">
+      <div class="inner">
+        <div class="eyebrow">The founder&rsquo;s diagnosis</div>
+        <div class="quote">Close rate is high when we&rsquo;re in conversations. The bottleneck is volume of conversations, not conversion.<span class="src">Matt Palackdharry &middot; discovery call</span></div>
+        <div class="note">Everything in this Sprint is built to remove exactly that constraint, and nothing else.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="1">
+      <div class="inner">
+        <div class="eyebrow">Where the Sprint applies force</div>
+        <div class="grid g2">
+          <div class="card">
+            <div class="tag">Already working</div>
+            <div class="ct">Conversion</div>
+            <p>Once Kinetic is in a qualified conversation, you close. That machinery doesn&rsquo;t need me, and this engagement doesn&rsquo;t touch it.</p>
+          </div>
+          <div class="card hl">
+            <div class="tag">The constraint</div>
+            <div class="ct">Qualified conversations</div>
+            <p>Not enough of them, not reliably, not from a repeatable source. That is the whole job for the next 90 days.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="2">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">02</div>
+          <h1 class="light">The Engagement</h1>
+          <div class="rule"></div>
+          <div class="lede">One capability, sold as a fixed-scope build</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="2">
+      <div class="inner">
+        <div class="statement">I build the engine. <em>You keep it.</em></div>
+        <div class="note">I sell inside the system while I build it, so it ships proven rather than theoretical. At day 91 the engine, the documentation, and the data behind it are yours, whether I convert to the seat or not.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="2">
+      <div class="inner">
+        <div class="eyebrow">Sprint scope</div>
+        <div class="grid g3">
+          <div class="stat"><div class="sv">70%</div><div class="sk">Of my time</div><div class="sd">Roughly 28 hours a week, dedicated to Kinetic</div></div>
+          <div class="stat"><div class="sv">DFW</div><div class="sk">Sole territory</div><div class="sd">Cincinnati and upper Midwest deferred to a later phase</div></div>
+          <div class="stat"><div class="sv">90</div><div class="sk">Days, retainer-based</div><div class="sd">You retain every close; I carry everything up to it</div></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">03</div>
+          <h1 class="light">The Metric</h1>
+          <div class="rule"></div>
+          <div class="lede">One number, defined precisely enough to be unarguable</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner center">
+        <div class="hero">6</div>
+        <div class="lede" style="text-align:center;">Qualified opportunities created in 90 days. Counted on creation, not on close.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner">
+        <div class="eyebrow blue-label">Calibration</div>
+        <div class="grid g3">
+          <div class="stat"><div class="sv">4</div><div class="sk">Floor</div><div class="sd">Base competence from a standing start, in a market where the logo means nothing yet.</div></div>
+          <div class="stat"><div class="sv">6</div><div class="sk">Target &middot; the commitment</div><div class="sd">Two a month averaged across a ramp that is deliberately slow in month one.</div></div>
+          <div class="stat"><div class="sv">8</div><div class="sk">Stretch</div><div class="sd">If the angles land early and the first referrals compound inside the quarter.</div></div>
+        </div>
+        <div class="note">I put targets in writing and hit them, which means the number has to survive month three. <em>I would rather commit to six and beat it than accept fifteen and explain it.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner">
+        <div class="eyebrow blue-label">Why six, and not fifteen</div>
+        <div class="grid g2">
+          <div class="card">
+            <div class="tag">What quarter one actually is</div>
+            <div class="ct">Category education</div>
+            <p>Nobody in DFW mid-market knows Kinetic yet. The early conversations are not buying conversations. They are explaining what bespoke AI architecture is, what it costs, what it replaces, and why it is not the failed pilot they already ran. That work is necessary, and it is slow.</p>
+          </div>
+          <div class="card hl">
+            <div class="tag">What quarter two is</div>
+            <div class="ct">Compounding</div>
+            <p>Once the engine is calibrated on real disposition data, the openers are field-tested, and there are named DFW references to point at, volume compounds against the same effort. That is where a number like fifteen lives, and it is the strongest argument for converting the seat.</p>
+          </div>
+        </div>
+        <div class="note">A first quarter that produces six real opportunities and a proven engine is worth more than one that produces fifteen thin ones and no repeatable motion.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner">
+        <div class="eyebrow blue-label">What counts: all four, documented in HubSpot</div>
+        <ul class="list">
+          <li><span class="n">01</span>A two-way conversation with a decision-maker or influencer, not a gatekeeper.</li>
+          <li><span class="n">02</span>The buyer has named a specific operational problem in their own words.</li>
+          <li><span class="n">03</span>Buying cycle established: timing, budget reality, decision process, blockers.</li>
+          <li><span class="n">04</span>A mutually agreed next step on the calendar, with a date.</li>
+        </ul>
+      </div>
+    </section>
+    <section class="slide" data-ch="3">
+      <div class="inner">
+        <div class="eyebrow blue-label">Unambiguous in both directions</div>
+        <div class="grid g2">
+          <div class="card hl">
+            <div class="tag">Counts</div>
+            <div class="ct">All four, logged, auditable</div>
+            <p>Every criterion met and recorded in HubSpot, reviewable by you at any point. One count per account.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Does not count</div>
+            <div class="ct">The comfortable near-misses</div>
+            <p>A warm intro with no conversation yet. Interest with no scheduled next step. A contact who can&rsquo;t influence the decision. A lapsed opportunity revived and re-counted.</p>
+          </div>
+        </div>
+        <div class="note">I disqualify fast and commit only to what has been earned, not hoped for. <em>That is how I put a number like this in writing.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="4">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">04</div>
+          <h1 class="light">The Rail</h1>
+          <div class="rule"></div>
+          <div class="lede">The engine, end to end, and who carries it</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="4">
+      <div class="inner">
+        <div class="eyebrow">The method</div>
+        <div class="rail">
+          <div class="rl" style="--sc:var(--stage-1)"><div class="rn">01 &middot; Signal</div><div class="rt">Signal</div><p>Demand originated from a cold start, not inherited.</p><div class="own">RVP</div></div>
+          <div class="rl" style="--sc:var(--stage-2)"><div class="rn">02 &middot; Pipeline</div><div class="rt">Qualified pipeline</div><p>Anything I did not originate gets re-qualified by default.</p><div class="own">Disposition Science</div></div>
+          <div class="rl" style="--sc:var(--stage-3)"><div class="rn">03 &middot; Maturation</div><div class="rt">VALID maturation</div><p>Five wins, each earned and documented before forecast.</p><div class="own">VALID&trade;</div></div>
+          <div class="rl" style="--sc:var(--stage-4)"><div class="rn">04 &middot; Negotiation</div><div class="rt">Negotiation</div><p>Terms shaped from earned leverage, not concessions used to rescue a deal.</p><div class="own">Founder-led</div></div>
+          <div class="rl" style="--sc:var(--stage-5)"><div class="rn">05 &middot; Closed</div><div class="rt">Closed</div><p>A forecast that holds because every win has an artifact.</p><div class="own">Founder-led</div></div>
+        </div>
+        <div class="note">Most organizations split this rail. Marketing and SDRs own 01 and 02, the AE picks it up at 03. <em>I carry 01 through 03 and quarterback 04 and 05 to you, so the pipeline you close is the pipeline I built.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="4">
+      <div class="inner">
+        <div class="eyebrow">The three frameworks on the rail</div>
+        <div class="grid g3">
+          <div class="card">
+            <div class="tag">Stage 01 &middot; Signal</div>
+            <div class="ct">RVP</div>
+            <p>The Referential Value Proposition. I open by naming the buyer&rsquo;s operational reality rather than pitching, so the response is &ldquo;that&rsquo;s exactly us,&rdquo; not a defence reflex. This is what turns dials into conversations.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Stage 02 &middot; Qualified pipeline</div>
+            <div class="ct">Disposition Science</div>
+            <p>Every completed conversation is tagged. The distribution names which lever (list, message, rep, follow-up, timing) is constraining the funnel, so corrections mid-Sprint are evidence-led rather than guesswork.</p>
+          </div>
+          <div class="card hl">
+            <div class="tag">Stage 03 &middot; Maturation</div>
+            <div class="ct">VALID&trade;</div>
+            <p>Five wins (Validated, Aligned, Locked, Invested, Documented), each with an owner and a required artifact. Only documented is forecastable. My own model, trademark pending.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="4">
+      <div class="inner">
+        <div class="statement">A positive meeting is not a win. Wins are earned in <em>provable increments</em>, and trust is the system that produces them.</div>
+        <div class="note">Five documented wins and one assumed win is not 83% qualified. It is unforecastable.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">05</div>
+          <h1 class="light">The Engine</h1>
+          <div class="rule"></div>
+          <div class="lede">How 4 to 8 gets built, not hoped for</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner">
+        <div class="eyebrow">Creating relevance where there is no brand recognition</div>
+        <div class="grid g3">
+          <div class="card">
+            <div class="tag">Angle 01</div>
+            <div class="ct">Vertical problem patterns</div>
+            <p>The operational problems specific to manufacturing, logistics, and construction that AI genuinely remedies when it is architected properly. I open on the problem, never on the product.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Angle 02</div>
+            <div class="ct">Modernization signals</div>
+            <p>Legacy ERP gaps, manual handoffs between systems, scheduling that lives in one person&rsquo;s head. Visible from the outside, expensive on the inside, and already costing them money.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Angle 03</div>
+            <div class="ct">AI-intent signals</div>
+            <p>Companies already looking: relevant job postings, pilot announcements, new data or operations leadership. Budget attention already exists, and often a disappointing pilot to compare against.</p>
+          </div>
+        </div>
+        <div class="note">This is targeting as research, not list buying. <em>Every account earns an angle before it earns a call</em>, which is what makes a cold conversation land when the logo means nothing yet.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner">
+        <div class="eyebrow">Mind share is not built in one channel</div>
+        <div class="grid g4">
+          <div class="card">
+            <div class="tag">Channel 01 &middot; Volume</div>
+            <div class="ct">Researched outbound</div>
+            <p>Dials, sequenced email, and targeted LinkedIn against accounts that already carry an angle. This is the engine that runs every week regardless of anything else.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Channel 02 &middot; Trust</div>
+            <div class="ct">In-person drop-ins</div>
+            <p>DFW is my home market, so a drop-in is a drive, not a flight. Reserved for accounts where the angle has landed but the relationship needs a face.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Channel 03 &middot; Cut-through</div>
+            <div class="ct">Direct mail</div>
+            <p>A physical touch survives a full inbox. Tested as a measured wave against Tier-1 accounts, then kept or killed on the disposition data.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Channel 04 &middot; Compounding</div>
+            <div class="ct">Network and association</div>
+            <p>DFW vertical associations and trade events, where the same rooms hold the same operators repeatedly. Slow to start, then self-reinforcing.</p>
+          </div>
+        </div>
+        <div class="note">We are not targeting manufacturing exclusively, but it sets the tone for the mix. <em>It is a relationship-first, referral-driven culture where a face and a handshake outrun a sequence</em>, and a plan that ignores that will stall in month two.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner">
+        <div class="eyebrow">The weekly engine: leading indicators I control</div>
+        <div class="flow">
+          <div class="fb"><div class="fv">120<span class="to">to</span>160</div><div class="fl">Researched dials<br>every week</div></div>
+          <div class="fa">&rarr;</div>
+          <div class="fb"><div class="fv">14<span class="to">to</span>20</div><div class="fl">Conversations<br>~12% connect rate</div></div>
+          <div class="fa">&rarr;</div>
+          <div class="fb"><div class="fv">1<span class="to">to</span>2</div><div class="fl">First meetings<br>every week</div></div>
+          <div class="fa">&rarr;</div>
+          <div class="fb"><div class="fv">4<span class="to">to</span>8</div><div class="fl">Opportunities<br>across 13 weeks</div></div>
+        </div>
+        <div class="note">Ranges, not points, because the early weeks need heavier output to buy the same mind share a known brand gets for free. Roughly 10 to 20 first meetings across the term once month one is discounted for ramp, converting at about two in five to qualified opportunity. The other three channels run on top of this and are what carry the number toward the stretch case. <em>Every ratio here gets calibrated against Kinetic&rsquo;s actual data in week one.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner center">
+        <div class="eyebrow">Opportunity ramp, cumulative</div>
+        <div class="bars">
+          <div class="bar"><div class="bt"><div class="bf" style="height:17%"><span class="bv">1</span></div></div><div class="bl">Month 1<br>build, angles, first calls</div></div>
+          <div class="bar"><div class="bt"><div class="bf" style="height:50%"><span class="bv">3</span></div></div><div class="bl">Month 2<br>steady-state cadence</div></div>
+          <div class="bar"><div class="bt"><div class="bf" style="height:100%"><span class="bv">6</span></div></div><div class="bl">Month 3<br>target delivered</div></div>
+        </div>
+        <div class="note" style="text-align:center;">The target case. A floor quarter lands nearer 1, 2, 4 and a stretch quarter nearer 1, 4, 8, but the shape holds in all three. <em>Month one buys mind share. Months two and three convert it.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="5">
+      <div class="inner">
+        <div class="eyebrow">Phase plan</div>
+        <table>
+          <thead><tr><th>Phase</th><th>Focus</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td class="k">Days 1&ndash;30</td><td>Build and score the DFW universe &middot; assign an angle per account &middot; stand up disposition tracking in HubSpot &middot; deploy an opener per vertical &middot; begin outbound</td><td>1 opportunity &middot; infrastructure live</td></tr>
+            <tr><td class="k">Days 31&ndash;60</td><td>Full cadence at steady state &middot; first disposition read &middot; refine list and message on the data &middot; layer field, network, and association work</td><td>+2 &middot; 3 cumulative</td></tr>
+            <tr><td class="k">Days 61&ndash;90</td><td>Sustain creation &middot; mature the earliest opportunities through the VALID gates with you &middot; support first closes</td><td>+3 &middot; 6 delivered</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="slide" data-ch="6">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">06</div>
+          <h1 class="light">What You Keep</h1>
+          <div class="rule"></div>
+          <div class="lede">Assets that stay, whatever happens at day 91</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="6">
+      <div class="inner">
+        <div class="grid g3">
+          <div class="card">
+            <div class="tag blue-label">Asset 01</div>
+            <div class="ct">Scored account universe</div>
+            <p>150&ndash;200 DFW accounts built and scored against a defined ICP composite, Tier-1 sequenced. Yours permanently.</p>
+          </div>
+          <div class="card">
+            <div class="tag blue-label">Asset 02</div>
+            <div class="ct">HubSpot, actually used</div>
+            <p>Ten-outcome disposition tracking configured and live, with your rev-ops resource trained to maintain it. HubSpot stops being half-configured and starts being diagnostic.</p>
+          </div>
+          <div class="card">
+            <div class="tag blue-label">Asset 03</div>
+            <div class="ct">Opener library and handoffs</div>
+            <p>A field-tested opener per vertical, weekly reporting, and a handoff packet per opportunity: stakeholder map, the problem in the buyer&rsquo;s words, blockers.</p>
+          </div>
+        </div>
+        <div class="note">Complexity fails. Simplicity scales. <em>I plug into the team you already have and own the work end to end. Less to break. More to celebrate.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="7">
+      <div class="inner">
+        <div class="divider">
+          <div class="dnum">07</div>
+          <h1 class="light">Proof &amp; Terms</h1>
+          <div class="rule"></div>
+          <div class="lede">The track record, the price, and the path</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="7">
+      <div class="inner">
+        <div class="eyebrow blue-label">Four numbers that back the claim</div>
+        <div class="grid g4">
+          <div class="stat"><div class="sv">390%</div><div class="sk">Q4 quota attainment</div><div class="sd">Enterprise software OEM &middot; 2020&ndash;21. Roughly $1M booked against a Q4 number near $256K.</div></div>
+          <div class="stat"><div class="sv">110%</div><div class="sk">On a dormant territory</div><div class="sd">Infrastructure and virtualization &middot; 2019. $2.2M against a $2M number.</div></div>
+          <div class="stat"><div class="sv">$5M+</div><div class="sk">Career pipeline closed</div><div class="sd">Datacenter, cloud, virtualization &middot; a decade. CTO and CIO buyers in regulated industries.</div></div>
+          <div class="stat"><div class="sv">$900K+</div><div class="sk">Largest single close</div><div class="sd">Across an ACV range of $100K to $500K+.</div></div>
+        </div>
+        <div class="note">Companies and dates on LinkedIn. <em>The dormant-territory number is the one that matters here. It is the closest analogue to this seat.</em></div>
+      </div>
+    </section>
+    <section class="slide" data-ch="7">
+      <div class="inner">
+        <div class="eyebrow blue-label">Sprint terms</div>
+        <div class="grid g3">
+          <div class="stat"><div class="sv">$30K</div><div class="sk">Fixed retainer</div><div class="sd">Across the 90-day term, invoiced monthly. Not contingent on attainment.</div></div>
+          <div class="stat"><div class="sv">$0</div><div class="sk">Commission this phase</div><div class="sd">Retainer only, so my incentive stays on opportunity quality rather than volume.</div></div>
+          <div class="stat"><div class="sv">Pass-through</div><div class="sk">Operating expenses</div><div class="sd">Data, conferences, association dues, field events, and the direct-mail wave on a company card. Items above $500 pre-approved.</div></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-ch="7">
+      <div class="inner">
+        <div class="eyebrow blue-label">Two phases, one direction</div>
+        <div class="grid g2">
+          <div class="card">
+            <div class="tag">Now &middot; Fixed Scope Sprint</div>
+            <div class="ct">Prove the pattern</div>
+            <p>90 days at 70% time for $30K. Success is 6 qualified opportunities against a floor of 4, a number I control, measured on creation.</p>
+          </div>
+          <div class="card hl">
+            <div class="tag">Then &middot; W2 conversion</div>
+            <div class="ct">Scale it</div>
+            <p>Triggered on delivering the metric plus mutual fit. ~$5K/month base, 10% of top-line, uncapped. I wind down outside contracts on day one.</p>
+          </div>
+        </div>
+        <div class="note">Commission base, payment timing, and ramp support are defined in the accompanying Statement of Work, along with the open items still to settle.</div>
+      </div>
+    </section>
+    <section class="slide" data-ch="7">
+      <div class="inner">
+        <div class="eyebrow blue-label">Next</div>
+        <h1>Let&rsquo;s put the<br>number in writing.</h1>
+        <div class="rule blue-label"></div>
+        <div class="lede">Chris Debayle &middot; Fractional Revenue Leader &middot; DFW<br>chrisdebayle.com</div>
+      </div>
+    </section>
+    <div class="progress" id="progress"></div>
+  </main>
+
+  <footer class="botbar">
+    <div class="counter"><span><span class="cur" id="cnum">01</span> / 31</span><span id="cname">Opening</span></div>
+    <div class="navhint">
+      <kbd>&larr;</kbd><kbd>&rarr;</kbd>
+      <span>arrow keys</span>
+      <span class="sep">&middot;</span>
+      <kbd>space</kbd>
+      <span>to advance</span>
+    </div>
+    <div class="navbtns">
+      <button id="prev">&larr; Prev</button>
+      <button id="next">Next &rarr;</button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+var CH = [{t:"Opening",c:"#F97316",first:0},{t:"Bottleneck",c:"#57A8EE",first:2},{t:"Engagement",c:"#4C8FD6",first:5},{t:"The Metric",c:"#F97316",first:8},{t:"The Rail",c:"#D96A24",first:14},{t:"The Engine",c:"#57A8EE",first:18},{t:"What You Keep",c:"#4C8FD6",first:24},{t:"Terms",c:"#F97316",first:26}];
+var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+var total = slides.length, cur = 0;
+var root = document.documentElement;
+var nav = document.getElementById('chapnav');
+
+CH.forEach(function(c,i){
+  var b = document.createElement('button');
+  b.textContent = c.t;
+  b.dataset.i = i;
+  b.addEventListener('click', function(){ go(c.first); });
+  nav.appendChild(b);
+});
+var navBtns = Array.prototype.slice.call(nav.querySelectorAll('button'));
+
+function paint(){
+  var s = slides[cur];
+  var ci = parseInt(s.dataset.ch, 10);
+  root.style.setProperty('--view', CH[ci].c);
+  document.getElementById('cnum').textContent = String(cur+1).padStart(2,'0');
+  document.getElementById('cname').textContent = CH[ci].t;
+  document.getElementById('progress').style.width = ((cur+1)/total*100) + '%';
+  navBtns.forEach(function(b,i){ b.classList.toggle('active', i === ci); });
+}
+function go(i){
+  if(i < 0 || i >= total || i === cur) return;
+  slides[cur].classList.remove('active');
+  cur = i;
+  slides[cur].classList.add('active');
+  paint();
+}
+document.getElementById('next').addEventListener('click', function(){ go(cur+1); });
+document.getElementById('prev').addEventListener('click', function(){ go(cur-1); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); go(cur+1); }
+  if(e.key === 'ArrowLeft'){ e.preventDefault(); go(cur-1); }
+});
+var tx = 0;
+document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; });
+document.addEventListener('touchend', function(e){
+  var d = e.changedTouches[0].screenX - tx;
+  if(Math.abs(d) > 50){ go(d < 0 ? cur+1 : cur-1); }
+});
+slides[0].classList.add('active');
+paint();
+</script>
+</body>
+</html>
