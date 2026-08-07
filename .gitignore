@@ -1,0 +1,8 @@
+# This repo is scoped to the Fixed Scope Sprint deck only.
+# Everything else stays local — confidential client material,
+# commercial/SOW drafts, proprietary framework source docs, and
+# internal notes should never be pushed here.
+*
+
+!.gitignore
+!Kinetic_FixedScopeSprint_90Day.html
